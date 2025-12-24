@@ -10,34 +10,6 @@ using Localization = FoldR.Core.Localization;
 namespace FoldR.Controls
 {
     /// <summary>
-    /// Display item for the ItemsControl
-    /// </summary>
-    /// <summary>
-    /// Display item for the ItemsControl
-    /// </summary>
-    public class DisplayItem : System.ComponentModel.INotifyPropertyChanged
-    {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        
-        private ImageSource _icon;
-        public ImageSource Icon 
-        { 
-            get => _icon; 
-            set 
-            { 
-                _icon = value; 
-                OnPropertyChanged("Icon"); 
-            } 
-        }
-        
-        public int Index { get; set; }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
-    }
-
-    /// <summary>
     /// FolderWidget - Main class with core functionality
     /// Partial classes: Theme.cs, Dialogs.cs, Interactions.cs
     /// </summary>
@@ -100,23 +72,41 @@ namespace FoldR.Controls
             Left = data.PosX;
             Top = data.PosY;
             
+            // Subscribe to theme changes for automatic updates
+            ThemeManager.ThemeChanged += OnThemeChanged;
+            
             Loaded += (s, e) =>
             {
                 // Apply theme colors (includes DrawFolderIcon, UpdatePanelColor, UpdateUI)
                 RefreshTheme();
                 UpdatePinButtonVisual();
                 
-                // If panel was pinned, auto-open it after startup
+                // If panel was pinned, auto-open it after layout is ready
                 if (_data.IsPanelPinned)
                 {
-                    Dispatcher.BeginInvoke(new Action(() => TogglePanel()), 
-                        System.Windows.Threading.DispatcherPriority.Background);
+                    // Wait for layout to complete before opening panel
+                    Dispatcher.BeginInvoke(new Action(() => 
+                    {
+                        UpdateLayout(); // Force layout update
+                        TogglePanel();
+                    }), System.Windows.Threading.DispatcherPriority.Loaded);
                 }
                 
                 this.Opacity = 0;
                 var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200));
                 this.BeginAnimation(OpacityProperty, fadeIn);
             };
+            
+            Closing += (s, e) =>
+            {
+                // Unsubscribe from theme changes
+                ThemeManager.ThemeChanged -= OnThemeChanged;
+            };
+        }
+        
+        private void OnThemeChanged()
+        {
+            Dispatcher.Invoke(() => RefreshTheme());
         }
         
         #endregion
@@ -156,17 +146,21 @@ namespace FoldR.Controls
             }
             
             // Items - include index for drag-drop reordering
+            // Get current theme text color from ThemeManager
+            var textBrush = ThemeManager.TextBrush;
+            
             var items = _data.Items.Select((item, index) => new DisplayItem
             {
-                Name = string.IsNullOrEmpty(item.Name) ? System.IO.Path.GetFileName(item.Path) : item.Name,
+                Name = GetDisplayName(string.IsNullOrEmpty(item.Name) ? item.Path : item.Name),
                 Path = item.Path,
                 Icon = null, // Load asynchronously to prevent freeze
-                Index = index
+                Index = index,
+                TextColor = textBrush
             }).ToList();
             
             ItemsContainer.ItemsSource = items;
             
-            // Load icons in background
+            // Load icons progressively - each icon appears immediately when loaded
             System.Threading.Tasks.Task.Run(() =>
             {
                 foreach (var item in items)
@@ -176,10 +170,10 @@ namespace FoldR.Controls
                         var icon = GetFileIcon(item.Path);
                         if (icon != null)
                         {
-                            // Update on UI thread not strictly necessary since DisplayItem notifies, 
-                            // but safer for ImageSource updates
                             icon.Freeze();
-                            item.Icon = icon;
+                            // Update immediately on UI thread
+                            Dispatcher.BeginInvoke(new Action(() => item.Icon = icon), 
+                                System.Windows.Threading.DispatcherPriority.Normal);
                         }
                     }
                     catch { /* Ignore icon load errors */ }
@@ -203,6 +197,22 @@ namespace FoldR.Controls
             // Apply item text colors after items are rendered
             Dispatcher.BeginInvoke(new Action(() => ApplyItemTextColors()), 
                 System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+        
+        /// <summary>
+        /// Gets display name for a file - removes .lnk extension from shortcuts
+        /// </summary>
+        private string GetDisplayName(string path)
+        {
+            string fileName = System.IO.Path.GetFileName(path);
+            
+            // Remove .lnk extension from shortcuts for cleaner display
+            if (fileName.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName.Substring(0, fileName.Length - 4);
+            }
+            
+            return fileName;
         }
 
         #endregion

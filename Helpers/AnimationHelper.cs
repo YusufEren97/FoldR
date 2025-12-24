@@ -169,53 +169,32 @@ namespace FoldR.Helpers
         }
 
         /// <summary>
-        /// Panel open animation - expand from folder outward with fade
+        /// Panel open animation - fade in only (no scale to prevent text blur)
         /// </summary>
         public static void PanelOpen(FrameworkElement panel, bool fromLeft = false)
         {
-            // Set initial state - start from folder edge
+            // Set initial state
             panel.Opacity = 0;
-            panel.RenderTransformOrigin = new Point(fromLeft ? 1 : 0, 0.5); // Transform from folder side
-            panel.RenderTransform = new ScaleTransform(0.92, 0.92);
+            panel.RenderTransform = null; // No transform - keeps text crisp
             
-            // Fade in
-            var fadeAnim = new DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(220)))
+            // Fade in smoothly
+            var fadeAnim = new DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(180)))
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            
-            // Scale from 0.92 to 1.0 (expand outward)
-            var scaleAnim = new DoubleAnimation(0.92, 1.0, new Duration(TimeSpan.FromMilliseconds(250)))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
             };
             
             panel.BeginAnimation(UIElement.OpacityProperty, fadeAnim);
-            ((ScaleTransform)panel.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-            ((ScaleTransform)panel.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
         }
 
         /// <summary>
-        /// Panel close animation - shrink toward folder with fade
+        /// Panel close animation - fade out only (no scale to prevent text blur)
         /// </summary>
         public static void PanelClose(FrameworkElement panel, bool toLeft = false, Action onComplete = null)
         {
-            if (!(panel.RenderTransform is ScaleTransform))
+            // Fade out smoothly
+            var fadeAnim = new DoubleAnimation(1, 0, new Duration(TimeSpan.FromMilliseconds(120)))
             {
-                panel.RenderTransformOrigin = new Point(toLeft ? 1 : 0, 0.5);
-                panel.RenderTransform = new ScaleTransform(1.0, 1.0);
-            }
-            
-            // Fade out
-            var fadeAnim = new DoubleAnimation(1, 0, new Duration(TimeSpan.FromMilliseconds(150)))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
-            };
-            
-            // Scale down (shrink toward folder)
-            var scaleAnim = new DoubleAnimation(1.0, 0.92, new Duration(TimeSpan.FromMilliseconds(180)))
-            {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
             };
             
             if (onComplete != null)
@@ -224,8 +203,6 @@ namespace FoldR.Helpers
             }
             
             panel.BeginAnimation(UIElement.OpacityProperty, fadeAnim);
-            ((ScaleTransform)panel.RenderTransform).BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-            ((ScaleTransform)panel.RenderTransform).BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
         }
     }
 }

@@ -156,8 +156,9 @@ namespace FoldR.Windows
             
             if (ThemeCombo.SelectedItem is ComboBoxItem item)
             {
-                _config.Theme = (string)item.Tag;
-                ThemeManager.ApplyTheme();
+                string newTheme = (string)item.Tag;
+                _config.Theme = newTheme;
+                ThemeManager.SetTheme(newTheme);
             }
         }
 
@@ -219,7 +220,7 @@ namespace FoldR.Windows
             
             // Revert UI
             Localization.SetLanguage(_originalLanguage);
-            ThemeManager.ApplyTheme();
+            ThemeManager.SetTheme(_originalTheme);
             WidgetManager.Instance.RefreshAllWidgets();
         }
         

@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FoldR.Core;
 
 namespace FoldR.Helpers
 {
@@ -21,15 +22,15 @@ namespace FoldR.Helpers
                 Padding = new Thickness(12, 8, 12, 8),
                 FontSize = 13,
                 FontFamily = new FontFamily("Segoe UI"),
-                Background = new SolidColorBrush(Color.FromRgb(45, 45, 45)),
-                Foreground = Brushes.White,
-                BorderBrush = new SolidColorBrush(Color.FromRgb(70, 70, 70)),
+                Background = ThemeManager.Gray45Brush,
+                Foreground = ThemeManager.WhiteBrush,
+                BorderBrush = ThemeManager.Gray70Brush,
                 BorderThickness = new Thickness(1),
-                CaretBrush = Brushes.White
+                CaretBrush = ThemeManager.WhiteBrush
             };
             
             // Add rounded corners via template would be ideal, but for simplicity:
-            tb.Resources.Add(SystemColors.WindowBrushKey, new SolidColorBrush(Color.FromRgb(45, 45, 45)));
+            tb.Resources.Add(SystemColors.WindowBrushKey, ThemeManager.Gray45Brush);
             
             return tb;
         }
@@ -52,13 +53,13 @@ namespace FoldR.Helpers
 
             if (isPrimary)
             {
-                btn.Background = new SolidColorBrush(Color.FromRgb(59, 130, 246)); // Blue
-                btn.Foreground = Brushes.White;
+                btn.Background = ThemeManager.AccentBlueBrush;
+                btn.Foreground = ThemeManager.WhiteBrush;
             }
             else
             {
-                btn.Background = new SolidColorBrush(Color.FromRgb(60, 60, 60));
-                btn.Foreground = Brushes.White;
+                btn.Background = ThemeManager.Gray60Brush;
+                btn.Foreground = ThemeManager.WhiteBrush;
             }
 
             return btn;
@@ -72,7 +73,7 @@ namespace FoldR.Helpers
             return new TextBlock
             {
                 Text = text,
-                Foreground = new SolidColorBrush(Color.FromRgb(200, 200, 200)),
+                Foreground = ThemeManager.Gray200Brush,
                 FontSize = 12,
                 FontFamily = new FontFamily("Segoe UI"),
                 Margin = new Thickness(0, 0, 0, 6)
@@ -87,7 +88,7 @@ namespace FoldR.Helpers
             return new TextBlock
             {
                 Text = text,
-                Foreground = Brushes.White,
+                Foreground = ThemeManager.WhiteBrush,
                 FontSize = 14,
                 FontWeight = FontWeights.SemiBold,
                 FontFamily = new FontFamily("Segoe UI"),
@@ -104,7 +105,7 @@ namespace FoldR.Helpers
             {
                 Content = content,
                 IsChecked = isChecked,
-                Foreground = Brushes.White,
+                Foreground = ThemeManager.WhiteBrush,
                 FontSize = 12,
                 FontFamily = new FontFamily("Segoe UI"),
                 Margin = new Thickness(0, 4, 0, 4)
@@ -133,7 +134,7 @@ namespace FoldR.Helpers
             return new Border
             {
                 Height = 1,
-                Background = new SolidColorBrush(Color.FromRgb(60, 60, 60)),
+                Background = ThemeManager.Gray60Brush,
                 Margin = new Thickness(0, 16, 0, 16)
             };
         }
@@ -143,7 +144,7 @@ namespace FoldR.Helpers
         /// </summary>
         public static void ApplyDarkStyle(Window window)
         {
-            window.Background = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+            window.Background = ThemeManager.DialogBackgroundBrush;
         }
     }
 }

@@ -42,6 +42,9 @@ namespace FoldR.Core
         {
             _config = AppConfig.Load();
             Localization.CurrentLanguage = _config.Language;
+            
+            // Initialize theme system with current theme
+            ThemeManager.Initialize(_config.Theme ?? "dark");
         }
 
         /// <summary>

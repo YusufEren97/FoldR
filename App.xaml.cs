@@ -101,7 +101,7 @@ namespace FoldR
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[FoldR] Registry update failed: {ex.Message}"); }
         }
 
         private void ActivateExistingInstance()

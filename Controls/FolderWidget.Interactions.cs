@@ -17,21 +17,7 @@ namespace FoldR.Controls
     /// </summary>
     public partial class FolderWidget
     {
-        #region Static Brushes & Colors (Performance)
-        
-        private static readonly Brush HoverBrush = new SolidColorBrush(Color.FromArgb(35, 255, 255, 255));
-        private static readonly Color PinGoldColor = Color.FromRgb(0xFF, 0xD7, 0x00);
-        private static readonly Color PinDarkGoldColor = Color.FromRgb(0xB8, 0x86, 0x0B);
-        private static readonly Color PinUnpinnedFill = Color.FromArgb(0x80, 0xFF, 0xFF, 0xFF);
-        private static readonly Color PinUnpinnedStroke = Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF);
-        
-        static FolderWidget()
-        {
-            // Freeze brushes for thread safety and performance
-            ((Freezable)HoverBrush).Freeze();
-        }
-        
-        #endregion
+        // Static brushes moved to ThemeManager for centralized cache
         
         #region Expand/Collapse
         
@@ -95,6 +81,8 @@ namespace FoldR.Controls
             }
             else
             {
+                // Clear selections when closing panel
+                ClearAllSelections();
                 double restoreLeft = _originalLeft;
                 double restoreTop = _originalTop;
                 
@@ -119,6 +107,9 @@ namespace FoldR.Controls
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
+            // Always clear selection when window loses focus
+            ClearAllSelections();
+            
             // Don't close panel if pinned
             if (_isExpanded && !_data.IsPanelPinned)
             {
@@ -130,7 +121,16 @@ namespace FoldR.Controls
         {
             if (e.Key == Key.Escape && _isExpanded)
             {
-                TogglePanel();
+                if (_data.IsPanelPinned)
+                {
+                    // Panel pinned - just clear selection
+                    ClearAllSelections();
+                }
+                else
+                {
+                    // Panel not pinned - close it (also clears selection)
+                    TogglePanel();
+                }
                 e.Handled = true;
             }
         }
@@ -149,16 +149,16 @@ namespace FoldR.Controls
             {
                 // Pinned state - rotate to 0 (vertical) and highlight
                 PinIconRotation.Angle = 0;
-                PinIcon.Fill = new SolidColorBrush(PinGoldColor);
-                PinIcon.Stroke = new SolidColorBrush(PinDarkGoldColor);
+                PinIcon.Fill = ThemeManager.PinGoldBrush;
+                PinIcon.Stroke = ThemeManager.PinDarkGoldBrush;
                 PinButton.ToolTip = "Unpin panel (close on focus loss)";
             }
             else
             {
                 // Unpinned state - rotate 45 degrees and dim
                 PinIconRotation.Angle = 45;
-                PinIcon.Fill = new SolidColorBrush(PinUnpinnedFill);
-                PinIcon.Stroke = new SolidColorBrush(PinUnpinnedStroke);
+                PinIcon.Fill = ThemeManager.PinUnpinnedFillBrush;
+                PinIcon.Stroke = ThemeManager.PinUnpinnedStrokeBrush;
                 PinButton.ToolTip = "Pin panel (keep open after restart)";
             }
         }
@@ -289,13 +289,16 @@ namespace FoldR.Controls
         private void Item_MouseEnter(object sender, MouseEventArgs e)
         {
             if (sender is Border b && !_isDraggingItem)
-                b.Background = HoverBrush;
+            {
+                // Use cached hover brush from ThemeManager
+                b.Background = ThemeManager.HoverBrush;
+            }
         }
 
         private void Item_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is Border b && !_isDraggingItem)
-                b.Background = Brushes.Transparent;
+                b.Background = ThemeManager.TransparentBrush;
         }
 
         private void Item_RightClick(object sender, MouseButtonEventArgs e)
@@ -305,10 +308,10 @@ namespace FoldR.Controls
                 var menu = new ContextMenu();
                 
                 var openItem = new MenuItem { Header = Localization.Get("Menu_Open") };
-                openItem.Click += (s, a) => { try { Process.Start(new ProcessStartInfo { FileName = item.Path, UseShellExecute = true }); } catch { } };
+                openItem.Click += (s, a) => { try { Process.Start(new ProcessStartInfo { FileName = item.Path, UseShellExecute = true }); } catch (Exception ex) { Debug.WriteLine($"[FoldR] Open failed: {ex.Message}"); } };
                 
                 var locItem = new MenuItem { Header = Localization.Get("Menu_OpenLocation") };
-                locItem.Click += (s, a) => { try { Process.Start("explorer.exe", $"/select,\"{item.Path}\""); } catch { } };
+                locItem.Click += (s, a) => { try { Process.Start("explorer.exe", $"/select,\"{item.Path}\""); } catch (Exception ex) { Debug.WriteLine($"[FoldR] Open location failed: {ex.Message}"); } };
                 
                 // Remove from widget (restore to desktop if in storage)
                 var remItem = new MenuItem { Header = Localization.Get("Menu_RemoveItem") };
@@ -330,7 +333,7 @@ namespace FoldR.Controls
                 var copyPathItem = new MenuItem { Header = Localization.Get("Menu_CopyPath") };
                 copyPathItem.Click += (s, a) => 
                 { 
-                    try { System.Windows.Clipboard.SetText(item.Path); } catch { }
+                    try { System.Windows.Clipboard.SetText(item.Path); } catch (Exception ex) { Debug.WriteLine($"[FoldR] Clipboard failed: {ex.Message}"); }
                 };
                 
                 menu.Items.Add(openItem);
@@ -413,19 +416,20 @@ namespace FoldR.Controls
             // Item Size submenu - affects all widgets
             var sizeItem = new MenuItem { Header = Localization.Get("Menu_ItemSize") };
             var sizes = new[] { 
-                ("Small", 0.9), 
-                ("Medium", 1.1), 
-                ("Default", 1.2),
-                ("Large", 1.3), 
-                ("Extra Large", 1.5) 
+                ("Size_Small", 0.9), 
+                ("Size_Normal", 1.0),
+                ("Size_Default", 1.1),  // App default
+                ("Size_Medium", 1.2),
+                ("Size_Large", 1.3), 
+                ("Size_ExtraLarge", 1.5) 
             };
             double currentScale = WidgetManager.Instance.Config.ItemScale;
-            foreach (var (name, scale) in sizes)
+            foreach (var (locKey, scale) in sizes)
             {
                 double s = scale;
                 var scaleItem = new MenuItem 
                 { 
-                    Header = name, 
+                    Header = Localization.Get(locKey), 
                     IsChecked = Math.Abs(currentScale - scale) < 0.05 
                 };
                 scaleItem.Click += (ss, aa) =>

@@ -35,9 +35,9 @@ namespace FoldR.Controls
             // Apply dark styling
             var border = new Border
             {
-                Background = new SolidColorBrush(ThemeManager.DialogBackground),
+                Background = ThemeManager.DialogBackgroundBrush,
                 CornerRadius = new CornerRadius(8),
-                BorderBrush = new SolidColorBrush(ThemeManager.DialogBorder),
+                BorderBrush = ThemeManager.DialogBorderBrush,
                 BorderThickness = new Thickness(1)
             };
             border.Effect = new System.Windows.Media.Effects.DropShadowEffect 
@@ -115,9 +115,9 @@ namespace FoldR.Controls
             // Apply dark styling
             var border = new Border
             {
-                Background = new SolidColorBrush(ThemeManager.DialogBackground),
+                Background = ThemeManager.DialogBackgroundBrush,
                 CornerRadius = new CornerRadius(8),
-                BorderBrush = new SolidColorBrush(ThemeManager.DialogBorder),
+                BorderBrush = ThemeManager.DialogBorderBrush,
                 BorderThickness = new Thickness(1)
             };
             border.Effect = new System.Windows.Media.Effects.DropShadowEffect 
@@ -179,10 +179,15 @@ namespace FoldR.Controls
             try
             {
                 // Create cache key based on extension (or folder marker)
+                // Special case: shortcuts (.lnk) need full path as key since each has different target icon
                 string cacheKey;
                 if (System.IO.Directory.Exists(path))
                 {
                     cacheKey = "::folder::";
+                }
+                else if (path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
+                {
+                    cacheKey = path.ToLowerInvariant(); // Full path for shortcuts
                 }
                 else
                 {
@@ -233,7 +238,7 @@ namespace FoldR.Controls
                     return src;
                 }
             }
-            catch { }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"[FoldR] Icon load failed: {ex.Message}"); }
             return null;
         }
 

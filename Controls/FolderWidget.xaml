@@ -85,7 +85,8 @@
                     BorderThickness="1" BorderBrush="#30FFFFFF"
                     Visibility="Collapsed"
                     RenderOptions.BitmapScalingMode="HighQuality"
-                    SnapsToDevicePixels="True">
+                    SnapsToDevicePixels="True"
+                    MouseLeftButtonDown="ExpandedPanel_MouseLeftButtonDown">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="25" ShadowDepth="8" Opacity="0.5" Color="#000000" RenderingBias="Quality"/>
                 </Border.Effect>
@@ -130,17 +131,21 @@
                         </Grid>
                     </Border>
                     
-                    <!-- Items - with drag-drop reordering support -->
+                    <!-- Items - with drag-drop reordering and lasso selection support -->
                     <ItemsControl x:Name="ItemsContainer" Grid.Row="1" Margin="8,4,8,8"
-                                  AllowDrop="True"
+                                  AllowDrop="True" Background="Transparent"
                                   DragOver="ItemsContainer_DragOver"
                                   DragLeave="ItemsContainer_DragLeave"
                                   Drop="ItemsContainer_Drop"
-                                  QueryContinueDrag="Panel_QueryContinueDrag">
+                                  QueryContinueDrag="Panel_QueryContinueDrag"
+                                  MouseLeftButtonDown="ItemsContainer_MouseLeftButtonDown"
+                                  MouseMove="ItemsContainer_MouseMove"
+                                  MouseLeftButtonUp="ItemsContainer_MouseLeftButtonUp">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Width="72" Height="85" Margin="2" CornerRadius="10" 
+                                <Border x:Name="ItemBorder" Width="72" Height="85" Margin="2" CornerRadius="10" 
                                         Background="Transparent" Cursor="Hand"
+                                        BorderThickness="2" BorderBrush="Transparent"
                                         MouseEnter="Item_MouseEnter" MouseLeave="Item_MouseLeave"
                                         MouseLeftButtonDown="Item_MouseDown"
                                         MouseLeftButtonUp="Item_MouseUp"
@@ -151,10 +156,17 @@
                                             <Image Source="{Binding Icon}" Stretch="Uniform"/>
                                         </Border>
                                         <TextBlock Text="{Binding Name}" FontSize="10"
+                                                   Foreground="{Binding TextColor}"
                                                    TextTrimming="CharacterEllipsis" TextAlignment="Center"
                                                    MaxWidth="70" Margin="0,6,0,0" FontFamily="Segoe UI"/>
                                     </StackPanel>
                                 </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#60A0FF"/>
+                                        <Setter TargetName="ItemBorder" Property="Background" Value="#2060A0FF"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                         <ItemsControl.ItemsPanel>
@@ -177,6 +189,13 @@
                             <DropShadowEffect BlurRadius="8" ShadowDepth="0" Color="White" Opacity="0.6"/>
                         </Rectangle.Effect>
                     </Rectangle>
+                    
+                    <!-- Selection Rectangle for lasso select -->
+                    <Rectangle x:Name="SelectionRect" 
+                               Grid.Row="1"
+                               Fill="#2060A0FF" Stroke="#60A0FF" StrokeThickness="1"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Visibility="Collapsed" IsHitTestVisible="False"/>
                     
                     <!-- Empty State -->
                     <StackPanel x:Name="EmptyState" Grid.Row="1" 

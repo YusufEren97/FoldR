@@ -14,17 +14,6 @@ namespace FoldR.Controls
     /// </summary>
     public partial class FolderWidget
     {
-        // Theme color cache (frozen for performance)
-        private static readonly SolidColorBrush _darkTextBrush = CreateFrozenBrush(Color.FromRgb(40, 40, 40));
-        private static readonly SolidColorBrush _lightTextBrush = CreateFrozenBrush(Colors.White);
-        
-        private static SolidColorBrush CreateFrozenBrush(Color color)
-        {
-            var brush = new SolidColorBrush(color);
-            brush.Freeze();
-            return brush;
-        }
-        
         /// <summary>
         /// Refreshes entire widget theme - called when theme changes or on startup
         /// </summary>
@@ -36,9 +25,8 @@ namespace FoldR.Controls
             // Refresh folder icon with new colors
             DrawFolderIcon();
             
-            // Refresh items display then apply colors
+            // Refresh items display (includes text color binding)
             UpdateUI();
-            ApplyItemTextColors();
         }
         
         /// <summary>
@@ -46,11 +34,10 @@ namespace FoldR.Controls
         /// </summary>
         private void ApplyThemeColors()
         {
-            bool isDark = ThemeManager.IsDarkTheme;
-            var textBrush = isDark ? _lightTextBrush : _darkTextBrush;
+            var textBrush = ThemeManager.TextBrush;
             
             // Folder name (widget label) - always white for visibility on any wallpaper
-            FolderNameText.Foreground = _lightTextBrush;
+            FolderNameText.Foreground = new SolidColorBrush(Colors.White);
             FolderNameText.Effect = null; // No effect for crisp text
             
             // Panel header text
@@ -64,27 +51,20 @@ namespace FoldR.Controls
         }
         
         /// <summary>
-        /// Apply text colors to all items in the panel
+        /// Apply text colors to all items in the panel (for theme change updates)
         /// </summary>
         private void ApplyItemTextColors()
         {
-            bool isDark = ThemeManager.IsDarkTheme;
-            var textBrush = isDark ? _lightTextBrush : _darkTextBrush;
-            UpdateAllItemTextColors(ItemsContainer, textBrush);
-        }
-        
-        private void UpdateAllItemTextColors(DependencyObject parent, SolidColorBrush brush)
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            var textBrush = ThemeManager.TextBrush;
+            
+            // Update DisplayItem TextColor property - binding will handle the rest
+            var items = ItemsContainer.ItemsSource as System.Collections.Generic.List<DisplayItem>;
+            if (items != null)
             {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                
-                if (child is TextBlock tb && tb.Name != "PanelHeaderText" && tb.Name != "EmptyText" && tb.Name != "FolderNameText")
+                foreach (var item in items)
                 {
-                    tb.Foreground = brush;
+                    item.TextColor = textBrush;
                 }
-                
-                UpdateAllItemTextColors(child, brush);
             }
         }
         
@@ -93,9 +73,8 @@ namespace FoldR.Controls
             Color baseColor = Utils.HexToColor(_data.Color);
             Color darkColor = Utils.DarkenColor(baseColor, 0.3);
             
-            // Get theme from config
-            string theme = WidgetManager.Instance.Config.Theme ?? "dark";
-            bool isDark = theme == "dark";
+            // Use ThemeManager for theme state
+            bool isDark = ThemeManager.IsDarkTheme;
             
             // Panel background
             var panelBrush = new LinearGradientBrush

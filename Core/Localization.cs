@@ -70,6 +70,12 @@ namespace FoldR.Core
                 ["Menu_GridSize"] = "📊 Grid Size",
                 ["Menu_Columns"] = "Columns",
                 ["Menu_ItemSize"] = "📐 Item Size",
+                ["Size_Small"] = "Small",
+                ["Size_Normal"] = "Normal",
+                ["Size_Default"] = "Default",
+                ["Size_Medium"] = "Medium",
+                ["Size_Large"] = "Large",
+                ["Size_ExtraLarge"] = "Extra Large",
                 
                 // Copy Path
                 ["Menu_CopyPath"] = "📋 Copy Path",
@@ -141,6 +147,12 @@ namespace FoldR.Core
                 ["Menu_GridSize"] = "📊 Izgara Boyutu",
                 ["Menu_Columns"] = "Sütun",
                 ["Menu_ItemSize"] = "📐 Öğe Boyutu",
+                ["Size_Small"] = "Küçük",
+                ["Size_Normal"] = "Normal",
+                ["Size_Default"] = "Varsayılan",
+                ["Size_Medium"] = "Orta",
+                ["Size_Large"] = "Büyük",
+                ["Size_ExtraLarge"] = "Çok Büyük",
                 
                 // Copy Path
                 ["Menu_CopyPath"] = "📋 Yolu Kopyala",
