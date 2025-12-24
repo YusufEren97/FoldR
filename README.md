@@ -4,7 +4,7 @@
 
 ![FoldR Logo](Resources/icon.png)
 
-**Organize your desktop with style** | **Masaüstünüzü şıklıkla düzenleyin**
+**Organize your desktop with floating folders** | **Masaüstünüzü yüzen klasörlerle düzenleyin**
 
 [![.NET Framework](https://img.shields.io/badge/.NET-4.8-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows)](https://www.microsoft.com/windows)
@@ -22,7 +22,7 @@
 
 | Dark Theme | Light Theme |
 |:---:|:---:|
-| ![Dark Theme](Screenshot/s1.png) | ![Light Theme](Screenshot/s2.png) |
+| ![Dark Theme](Screenshot/s2.png) | ![Light Theme](Screenshot/s1.png) |
 
 | Panel Open | Settings |
 |:---:|:---:|
