@@ -1,0 +1,29 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/
+*.nupkg
+
+# User files
+*.rsuser
+*.userprefs
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# App data (user configs)
+FoldRData/
+
+# Debug symbols (keep exe clean)
+*.pdb
